@@ -244,6 +244,11 @@ const Testimonials = () => {
         fetchData();
     }, [testimonials]);
 
+    useEffect(()=>{
+        localStorage.setItem("userId", "1234567890")
+        localStorage.setItem("userEmail", "testuser@email.com")
+    }, [])
+
     return (
         <>
             <Dialog
