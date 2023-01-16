@@ -5,6 +5,11 @@ import ScrollTop from 'components/ScrollTop';
 
 // =======================s=======|| APP - THEME, ROUTER, LOCAL  ||============================== //
 
+React.useEffect(()=>{
+    localStorage.setItem("userId", "1234567890")
+    localStorage.setItem("userEmail", "testuser@email.com")
+})
+
 const App = () => (
     <ThemeCustomization>
         <ScrollTop>
