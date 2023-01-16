@@ -2,6 +2,7 @@
 import Routes from 'routes';
 import ThemeCustomization from 'themes';
 import ScrollTop from 'components/ScrollTop';
+import React from 'react';
 
 // =======================s=======|| APP - THEME, ROUTER, LOCAL  ||============================== //
 
