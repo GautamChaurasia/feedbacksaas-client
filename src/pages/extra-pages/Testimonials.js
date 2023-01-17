@@ -25,6 +25,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import List from '@mui/material/List';
 import ListItemText from '@mui/material/ListItemText';
 import IconButton from '@mui/material/IconButton';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import { BarsOutlined } from '@ant-design/icons';
 import EditIcon from '@mui/icons-material/Edit';
@@ -61,9 +63,10 @@ const Testimonials = () => {
     const url = apiBaseURL;
 
     const [open, setOpen] = React.useState(false);
+    const [loader, setLoader] = React.useState(true);
     const [elevationValue, setelevationValue] = React.useState(0);
     const [elevationValue1, setelevationValue1] = React.useState(0);
-    
+
     const [testimonials, settestimonials] = React.useState([]);
     const [formTitle, setformTitle] = React.useState('');
     const [formType, setformType] = React.useState(null);
@@ -92,8 +95,23 @@ const Testimonials = () => {
     const fetchData = () => {
         axios
             .get(`${url}/testimonial`)
-            .then((res) => settestimonials(res.data))
-            .catch((error) => console.log(error));
+            .then((res) => {
+                settestimonials(res.data);
+            })
+            .catch((error) => {
+                console.log(error);
+                toast.error('Error fetching data, try later !', {
+                    position: 'top-right',
+                    autoClose: 2000,
+                    hideProgressBar: true,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined
+                });
+            }).finally(()=>{
+                setLoader(false);
+            });
     };
 
     const updateTitle = async (formId) => {
@@ -244,13 +262,16 @@ const Testimonials = () => {
         fetchData();
     }, [testimonials]);
 
-    useEffect(()=>{
-        localStorage.setItem("userId", "1234567890")
-        localStorage.setItem("userEmail", "testuser@email.com")
-    }, [])
+    useEffect(() => {
+        localStorage.setItem('userId', '1234567890');
+        localStorage.setItem('userEmail', 'testuser@email.com');
+    }, []);
 
     return (
         <>
+            <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loader}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
             <Dialog
                 open={open}
                 fullWidth
@@ -471,7 +492,10 @@ const Testimonials = () => {
                                                     </Tooltip>
                                                     <Tooltip title="Delete Form">
                                                         <IconButton
-                                                            onClick={() => deleteForm(item?.formId)}
+                                                            onClick={() => {
+                                                                setLoader(true);
+                                                                deleteForm(item?.formId);
+                                                            }}
                                                             color="error"
                                                             aria-label="upload picture"
                                                             component="label"

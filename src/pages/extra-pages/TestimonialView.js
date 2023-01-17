@@ -43,6 +43,9 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormControl from '@mui/material/FormControl';
+import { LoadingButton } from '@mui/lab';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -60,6 +63,8 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const TestimonialView = () => {
     const [open, setOpen] = React.useState(false);
+    const [loader, setLoader] = React.useState(true);
+    const [btnLoading, setBtnLoading] = React.useState(false);
     const [elevationValue, setelevationValue] = React.useState(0);
     const [elevationValue1, setelevationValue1] = React.useState(0);
     const [elevationValue2, setelevationValue2] = React.useState(0);
@@ -79,10 +84,28 @@ const TestimonialView = () => {
     const { status, startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({ video: true });
 
     const fetchData = () => {
+        setLoader(true);
         axios
             .get(`${url}/question/${formId}/${localStorage.getItem('userId')}`)
-            .then((res) => setquestions(res.data))
-            .catch((error) => console.log(error));
+            .then((res) => {
+                setquestions(res.data);
+            })
+            .catch((error) => {
+                console.log(error);
+                toast.error('Error fetching data, try later !', {
+                    position: 'top-right',
+                    autoClose: 2000,
+                    hideProgressBar: true,
+                    closeOnClick: true,
+                    pauseOnHover: false,
+                    draggable: true,
+                    progress: undefined
+                });
+            })
+            .finally(() => {
+                setLoader(false);
+                setBtnLoading(false);
+            });
     };
 
     const createQuestion = async (e, type) => {
@@ -194,6 +217,7 @@ const TestimonialView = () => {
     };
 
     const updateOrder = (dragEvent, qnId) => {
+        setLoader(true)
         const tempList = orderArray;
         if (dragEvent) {
             const source = dragEvent.source;
@@ -219,6 +243,7 @@ const TestimonialView = () => {
     };
     const handleClose = () => {
         setOpen(false);
+        setBtnLoading(false);
         setelevationValue1(0);
         setelevationValue(0);
     };
@@ -427,6 +452,10 @@ const TestimonialView = () => {
                 </Box>
             </Drawer>
 
+            <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loader}>
+                <CircularProgress color="inherit" />
+            </Backdrop>
+
             <Dialog
                 open={open}
                 fullWidth
@@ -614,27 +643,51 @@ const TestimonialView = () => {
                         <Button onClick={() => setstep(2)} autoFocus>
                             Retake
                         </Button>
-                        <Button onClick={createVideoQuestion} autoFocus>
+                        <LoadingButton
+                            variant="contained"
+                            loading={btnLoading}
+                            onClick={(e) => {
+                                setBtnLoading(true);
+                                createVideoQuestion(e);
+                            }}
+                            autoFocus
+                        >
                             Submit
-                        </Button>
+                        </LoadingButton>
                     </DialogActions>
                 ) : null}
 
                 {step === 5 ? (
                     <DialogActions>
                         <Button onClick={handleClose}>Close</Button>
-                        <Button onClick={(e) => createQuestion(e, 'text')} autoFocus>
+                        <LoadingButton
+                            variant="contained"
+                            loading={btnLoading}
+                            onClick={(e) => {
+                                setBtnLoading(true);
+                                createQuestion(e, 'text');
+                            }}
+                            autoFocus
+                        >
                             Submit
-                        </Button>
+                        </LoadingButton>
                     </DialogActions>
                 ) : null}
 
                 {step === 6 ? (
                     <DialogActions>
                         <Button onClick={handleClose}>Close</Button>
-                        <Button onClick={(e) => createQuestion(e, 'rate')} autoFocus>
+                        <LoadingButton
+                            variant="contained"
+                            loading={btnLoading}
+                            onClick={(e) => {
+                                setBtnLoading(true);
+                                createQuestion(e, 'rate');
+                            }}
+                            autoFocus
+                        >
                             Submit
-                        </Button>
+                        </LoadingButton>
                     </DialogActions>
                 ) : null}
             </Dialog>
@@ -746,15 +799,18 @@ const TestimonialView = () => {
                                                                             ) : null}
 
                                                                             <Tooltip title="Delete Question">
-                                                                                <IconButton
-                                                                                    onClick={() => deleteQuestion(item?.qnId)}
+                                                                                <LoadingButton
+                                                                                    onClick={() => {
+                                                                                        setLoader(true);
+                                                                                        deleteQuestion(item?.qnId);
+                                                                                    }}
                                                                                     sx={{ float: 'right', m: 1 }}
                                                                                     color="error"
                                                                                     aria-label="upload picture"
                                                                                     component="label"
                                                                                 >
                                                                                     <DeleteIcon />
-                                                                                </IconButton>
+                                                                                </LoadingButton>
                                                                             </Tooltip>
 
                                                                             <Tooltip title="View Responses">
