@@ -74,6 +74,8 @@ const TestimonialView = () => {
     const [videostatus, setvideostatus] = React.useState(0);
     const [step, setstep] = React.useState(1);
     const [questions, setquestions] = React.useState([]);
+    const [drawerQuestion, setDrawerQuestion] = React.useState(null);
+    const [drawerData, setDrawerData] = React.useState(null);
     const [order, setOrder] = React.useState({});
     const [orderArray, setOrderArray] = React.useState([]);
     const [qnTitle, setNewQuestion] = React.useState('');
@@ -318,10 +320,12 @@ const TestimonialView = () => {
         right: false
     });
 
-    const toggleDrawer = (anchor, open) => (event) => {
-        console.log(anchor);
+    const toggleDrawer = (anchor, open, question) => (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
             return;
+        }
+        if (question) {
+            setDrawerQuestion(question);
         }
         setState({ ...state, [anchor]: open });
     };
@@ -330,6 +334,23 @@ const TestimonialView = () => {
     const handleAccordianChange = (panel) => (event, isExpanded) => {
         setExpanded(isExpanded ? panel : false);
     };
+
+    const updateDrawerData = (question) => {
+        const res = [];
+        responses.forEach((item) => {
+            const response = item.answers[question.qnId];
+            if (response !== null) {
+                res.push({ name: item.reviewer.name, response });
+            }
+        });
+        setDrawerData([question, res]);
+    };
+
+    React.useEffect(() => {
+        if (drawerQuestion) {
+            updateDrawerData(drawerQuestion);
+        }
+    }, [drawerQuestion]);
 
     React.useEffect(() => {
         axios
@@ -411,51 +432,43 @@ const TestimonialView = () => {
                     <br />
                     <br />
                     <Typography variant="h5" component="div">
-                        Q. Tell us more about the user expirience of the product ?
+                        Q. {drawerData && drawerData[0].qnTitle}
                     </Typography>
                     <br />
 
-                    <Card variant="outlined" sx={{ mb: 2 }}>
-                        <CardContent>
-                            <Chip sx={{ float: 'right' }} color="success" label="Public" />
-                            <Stack sx={{ mb: 2 }} direction="row" spacing={1}>
-                                <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                                <Typography sx={{ pt: 1 }} variant="h5">
-                                    Test User
-                                </Typography>
-                            </Stack>
-                            <Rating name="read-only" value={5} readOnly />
-                            <br />
-                            <Typography variant="p">
-                                I just learned about test.com this morning and now they have a new customer. I'm head over heels about
-                                Test's project. It just works! Well done!
-                            </Typography>
-                        </CardContent>
-                    </Card>
-
-                    <Card variant="outlined" sx={{ mb: 2 }}>
-                        <CardContent>
-                            <Chip sx={{ float: 'right' }} color="success" label="Public" />
-                            <Stack sx={{ mb: 2 }} direction="row" spacing={1}>
-                                <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                                <Typography sx={{ pt: 1 }} variant="h5">
-                                    Test User
-                                </Typography>
-                            </Stack>
-                            <Rating name="read-only" value={5} readOnly />
-                            <br />
-                            <Button
-                                variant="text"
-                                endIcon={<PlayCircleIcon />}
-                                onClick={() => {
-                                    setstep(4);
-                                    setOpen(true);
-                                }}
-                            >
-                                Play Video
-                            </Button>
-                        </CardContent>
-                    </Card>
+                    <>
+                        {drawerData &&
+                            drawerData[1].map((response, index) => (
+                                <Card key={index} variant="outlined" sx={{ mb: 2 }}>
+                                    <CardContent>
+                                        <Chip sx={{ float: 'right' }} color="success" label="Public" />
+                                        <Stack sx={{ mb: 2 }} direction="row" spacing={1}>
+                                            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+                                            <Typography sx={{ pt: 1 }} variant="h5">
+                                                {response.name}
+                                            </Typography>
+                                        </Stack>
+                                        {drawerData[0].qnType === 'text' ? (
+                                            <Typography variant="p">{response.response}</Typography>
+                                        ) : drawerData[0].qnType === 'rate' ? (
+                                            <Rating name="read-only" value={parseInt(response.response.split('-')[1])} readOnly />
+                                        ) : drawerData[0].qnType === 'video' ? (
+                                            <Button
+                                                variant="text"
+                                                endIcon={<PlayCircleIcon />}
+                                                onClick={() => {
+                                                    // setVideourl(response.response)
+                                                    setstep(4);
+                                                    setOpen(true);
+                                                }}
+                                            >
+                                                Play Video
+                                            </Button>
+                                        ) : null}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                    </>
                 </Box>
             </Drawer>
 
@@ -824,7 +837,7 @@ const TestimonialView = () => {
 
                                                                             <Tooltip title="View Responses">
                                                                                 <IconButton
-                                                                                    onClick={toggleDrawer('right', true)}
+                                                                                    onClick={toggleDrawer('right', true, item)}
                                                                                     sx={{ float: 'right', m: 1 }}
                                                                                     color="default"
                                                                                     aria-label="upload picture"
@@ -970,9 +983,11 @@ const TestimonialView = () => {
                                     })}
                                 </>
                             ) : (
-                                <center>
-                                    <Typography variant="h5">No responses registered yet !</Typography>
-                                </center>
+                                <Paper sx={{p: '8px'}} elevation={2}>
+                                    <center>
+                                        <Typography variant="h5">No responses registered yet !</Typography>
+                                    </center>
+                                </Paper>
                             )}
                         </>
                     )}
