@@ -38,6 +38,7 @@ import DialogContent from '@mui/material/DialogContent';
 import { useReactMediaRecorder } from 'react-media-recorder';
 import Webcam from 'react-webcam';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -58,6 +59,7 @@ import { apiBaseURL } from 'config';
 import { set } from 'lodash';
 import { string } from 'prop-types';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { Accordion, AccordionDetails, AccordionSummary } from '../../../node_modules/@mui/material/index';
 
 // ==============================|| SAMPLE PAGE ||============================== //
 
@@ -217,7 +219,7 @@ const TestimonialView = () => {
     };
 
     const updateOrder = (dragEvent, qnId) => {
-        setLoader(true)
+        setLoader(true);
         const tempList = orderArray;
         if (dragEvent) {
             const source = dragEvent.source;
@@ -322,6 +324,11 @@ const TestimonialView = () => {
             return;
         }
         setState({ ...state, [anchor]: open });
+    };
+
+    const [expanded, setExpanded] = React.useState(false);
+    const handleAccordianChange = (panel) => (event, isExpanded) => {
+        setExpanded(isExpanded ? panel : false);
     };
 
     React.useEffect(() => {
@@ -715,6 +722,8 @@ const TestimonialView = () => {
                             <FormControlLabel value="Testimonial" control={<Radio />} label="Testimonial" />
                         </RadioGroup>
                     </FormControl>
+                    <br />
+                    <br />
 
                     {value === 'Questions' ? (
                         <>
@@ -858,111 +867,114 @@ const TestimonialView = () => {
                             )}
                         </>
                     ) : (
-                        <TableContainer component={Paper}>
+                        <>
                             {responses.length !== 0 ? (
-                                <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell sx={{ width: '30px' }}>Person</TableCell>
-                                            <TableCell sx={{ width: '40px' }} align="left">
-                                                Testimonial
-                                            </TableCell>
-                                            <TableCell sx={{ width: '60px' }} align="left">
-                                                Date
-                                            </TableCell>
-                                            <TableCell sx={{ width: '60px' }} align="center">
-                                                Status
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {responses.map((item) => {
-                                            let date = new Date(item.createdOn).toString();
-                                            date = date.split(' ');
-                                            date = date.slice(0, 4).join(' ');
-                                            const keys = Object.keys(item.answers);
-                                            let qnCount = 1;
-                                            const responseList = keys.map((key) => {
-                                                const videoPattern = /^https:\/\//;
-                                                const isVideo = videoPattern.test(item.answers[key]);
-                                                const ratePattern = /^rate-/;
-                                                const isRate = ratePattern.test(item.answers[key]);
-                                                return (
-                                                    <TableRow key={key} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                                        <TableCell component="th" scope="row">
-                                                            <Stack direction="row" spacing={1}>
+                                <>
+                                    {responses.map((item) => {
+                                        let date = new Date(item.createdOn).toString();
+                                        date = date.split(' ');
+                                        date = date.slice(0, 4).join(' ');
+                                        const keys = Object.keys(item.answers);
+                                        let qnCount = 1;
+                                        const responseList = keys.map((key) => {
+                                            const videoPattern = /^https:\/\//;
+                                            const isVideo = videoPattern.test(item.answers[key]);
+                                            const ratePattern = /^rate-/;
+                                            const isRate = ratePattern.test(item.answers[key]);
+                                            return (
+                                                <TableRow key={key} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                    <TableCell sx={{ width: '50px' }} align="left">
+                                                        <Typography sx={{ color: 'gray' }} variant="h5">
+                                                            {qnCount++}.
+                                                        </Typography>
+                                                    </TableCell>
+                                                    <TableCell align="left">
+                                                        {isVideo ? (
+                                                            <>
+                                                                <Button
+                                                                    variant="text"
+                                                                    endIcon={<PlayCircleIcon />}
+                                                                    onClick={() => {
+                                                                        // setVideourl(item.answers[key])
+                                                                        setstep(4);
+                                                                        setOpen(true);
+                                                                    }}
+                                                                >
+                                                                    Play Video
+                                                                </Button>
+                                                            </>
+                                                        ) : isRate ? (
+                                                            <>
+                                                                <Rating
+                                                                    name="read-only"
+                                                                    value={parseInt(item.answers[key].split('-')[1])}
+                                                                    readOnly
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Typography variant="h5">{item.answers[key]}</Typography>
+                                                            </>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        });
+                                        return (
+                                            <Accordion
+                                                key={item.reviewId}
+                                                expanded={expanded === item.reviewId}
+                                                onChange={handleAccordianChange(item.reviewId)}
+                                            >
+                                                <AccordionSummary
+                                                    expandIcon={<ExpandMoreIcon />}
+                                                    aria-controls="panel1bh-content"
+                                                    id="panel1bh-header"
+                                                >
+                                                    <Grid container>
+                                                        <Grid item xs={6}>
+                                                            <Stack direction="row" spacing={2}>
                                                                 <Avatar alt="Reviewer" src="/static/images/avatar/1.jpg" />
                                                                 <Typography sx={{ pt: 1 }} variant="h5">
                                                                     {item.reviewer.name}
                                                                 </Typography>
                                                             </Stack>
-                                                        </TableCell>
-                                                        <TableCell align="left">
-                                                            {/* <Rating name="read-only" value={item.rating} readOnly /> */}
-                                                            <br />
-
-                                                            {isVideo ? (
-                                                                <>
-                                                                    <Typography sx={{ color: 'gray' }} variant="subtitle2">
-                                                                        Question {qnCount++}.
-                                                                    </Typography>
-                                                                    <Button
-                                                                        variant="text"
-                                                                        endIcon={<PlayCircleIcon />}
-                                                                        onClick={() => {
-                                                                            // setVideourl(item.answers[key])
-                                                                            setstep(4);
-                                                                            setOpen(true);
-                                                                        }}
-                                                                    >
-                                                                        Play Video
-                                                                    </Button>
-                                                                </>
-                                                            ) : isRate ? (
-                                                                <>
-                                                                    <Typography sx={{ color: 'gray' }} variant="subtitle2">
-                                                                        Question {qnCount++}.
-                                                                    </Typography>
-                                                                    <Rating
-                                                                        name="read-only"
-                                                                        value={parseInt(item.answers[key].split('-')[1])}
-                                                                        readOnly
-                                                                    />
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <Typography sx={{ color: 'gray' }} variant="subtitle2">
-                                                                        Question {qnCount++}.
-                                                                    </Typography>
-                                                                    <Typography sx={{ pt: 1 }} variant="p">
-                                                                        {item.answers[key]}
-                                                                    </Typography>
-                                                                </>
-                                                            )}
-                                                        </TableCell>
-
-                                                        <TableCell align="left">
-                                                            <Typography sx={{ pt: 1 }} variant="p">
+                                                        </Grid>
+                                                        <Grid item xs={3}>
+                                                            <Typography sx={{ pt: 1 }} variant="h5">
                                                                 {date}
                                                             </Typography>
-                                                        </TableCell>
-
-                                                        <TableCell align="center">
-                                                            <Chip color="success" label="Public" />
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            });
-                                            return responseList;
-                                        })}
-                                    </TableBody>
-                                </Table>
+                                                        </Grid>
+                                                        <Grid item xs={3}>
+                                                            <div
+                                                                style={{
+                                                                    display: 'flex',
+                                                                    justifyContent: 'flex-end',
+                                                                    paddingRight: '20%'
+                                                                }}
+                                                            >
+                                                                <Chip color="success" label="Public" />
+                                                            </div>
+                                                        </Grid>
+                                                    </Grid>
+                                                </AccordionSummary>
+                                                <Paper sx={{ m: '16px', backgroundColor: '#fafafa' }}>
+                                                    <AccordionDetails>
+                                                        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                                                            <TableBody>{responseList}</TableBody>
+                                                        </Table>
+                                                    </AccordionDetails>
+                                                </Paper>
+                                            </Accordion>
+                                        );
+                                    })}
+                                </>
                             ) : (
                                 <center>
                                     <Typography variant="h5">No responses registered yet !</Typography>
                                 </center>
                             )}
-                        </TableContainer>
+                        </>
                     )}
                 </Grid>
             </Grid>
